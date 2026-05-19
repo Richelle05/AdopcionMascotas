@@ -120,53 +120,65 @@ with st.form("formulario_lindo"):
     st.markdown("<br>", unsafe_allow_html=True)
     boton_predecir = st.form_submit_button("✨ ¡Calcular Tiempo de Adopción con Magia! 🔮")
 
-
-
-
-# --- 🔮 PREDICCIÓN CON VALORES INTERNOS PREESTABLECIDOS Y RESULTADO ADORABLE 🔮 ---
 if boton_predecir:
-    # 1. Obtener el código interno de la raza elegida de forma bonita
+    # 1. Obtener el código de la raza elegida
     breed1_val = diccionario_razas[raza_seleccionada]
     
-    # 2. Rellenamos automáticamente las variables eliminadas con promedios estables del dataset original
-    breed2_val = 0         # No hay segunda raza
-    color1_val = 1         # Código básico para color Negro/Marrón general
+    # 2. Definir los valores fijos para las variables que ocultamos de la pantalla
+    breed2_val = 0         # Sin segunda raza
+    color1_val = 1         # Código de color por defecto
     maturity_size_val = 2  # Tamaño estándar Mediano
     fur_length_val = 1     # Largo de pelo Corto común
     quantity_val = 1       # Una sola mascota
-    fee_val = 0            # Adopción gratuita común
-    video_amt_val = 0      # Sin videos cargados
-    photo_amt_val = 2      # Promedio estándar de 2 fotos por post
+    fee_val = 0            # Adopción gratuita
+    video_amt_val = 0      # Sin videos
+    photo_amt_val = 2      # Promedio de 2 fotos
     
-    # Construcción de la matriz numérica plana para el Random Forest
-    matriz_entrada = np.array([[
-        type_pet, age, breed1_val, breed2_val, gender, color1_val,
-        maturity_size_val, fur_length_val, vaccinated, dewormed,
-        sterilized, health, quantity_val, fee_val, video_amt_val, photo_amt_val
-    ]])
+    # 3. CONSTRUIR LA LISTA CON LAS 13 VARIABLES EXACTAS QUE TU MODELO EN COLAB ESPERA
+    # Orden estricto del bloque original de entrenamiento en Colab:
+    lista_valores = [
+        type_pet,           # 1
+        age,                # 2
+        breed1_val,         # 3
+        breed2_val,         # 4
+        gender,             # 5
+        color1_val,         # 6
+        maturity_size_val,  # 7
+        fur_length_val,     # 8
+        vaccinated,         # 9
+        dewormed,           # 10
+        sterilized,         # 11
+        health,             # 12
+        quantity_val        # 13
+    ]
     
-    # Ejecutar la predicción
-    clase_predicha = model.predict(matriz_entrada)[0]
+    # Convertimos a la matriz de dos dimensiones requerida (1 fila, 13 columnas)
+    matriz_pura = np.array([lista_valores])
     
-    # Mapeo de respuestas tiernas
-    categorias_adopcion = {
-        0: "⚡ ¡Adopción Flash! Se irá a casa hoy mismo 💖",
-        1: "🚗 ¡Súper Rápido! Conseguirá familia en menos de una semanita 🏠✨",
-        2: "🏡 ¡Adopción Rápida! Tarda entre 8 y 30 días en enamorar a alguien 🥰",
-        3: "⏳ Adopción Moderada. Tarda de 1 a 3 meses, ¡pero el amor llega! 🌸",
-        4: "🧸 Adopción Difícil. Requiere un poquito más de tiempo y paciencia (+100 días) 💕"
-    }
-    
-    resultado_final = categorias_adopcion.get(clase_predicha, "¡Categoría misteriosa! ✨")
-    
-    # --- 🐾 CAMBIO: GATITOS O PERRITOS EN VEZ DE GLOBOS Y NIEVE 🐾 ---
-    st.balloons()
-    st.markdown("### 💌 La Respuesta de las Estrellas:")
-    
-    # Mostrar imágenes adorables según el tipo de animal
-    if type_pet == 1: # Perrito
-        st.image("https://media.giphy.com/media/VbyXgohWJCIRy/giphy.gif", caption="¡Perrito feliz esperando su hogar!", use_column_width=True) 
-    else: # Gatito
-        st.image("https://media.giphy.com/media/11s4Xp6Y9eG5fQ/giphy.gif", caption="¡Gatito adorable esperando su hogar!", use_column_width=True)
-
-    st.success(f"**{resultado_final}**")
+    try:
+        # Extraemos el estimador interno de la búsqueda bayesiana de forma segura
+        if hasattr(model, 'best_estimator_'):
+            clase_predicha = model.best_estimator_.predict(matriz_pura)[0]
+        else:
+            clase_predicha = model.predict(matriz_pura)[0]
+        
+        # Mapeo de respuestas tiernas
+        categorias_adopcion = {
+            0: "⚡ ¡Adopción Flash! Se irá a casa hoy mismo 💖",
+            1: "🚗 ¡Súper Rápido! Conseguirá familia en menos de una semanita 🏠✨",
+            2: "🏡 ¡Adopción Rápida! Tarda entre 8 y 30 días en enamorar a alguien 🥰",
+            3: "⏳ Adopción Moderada. Tarda de 1 a 3 meses, ¡pero el amor llega! 🌸",
+            4: "🧸 Adopción Difícil. Requiere un poquito más de tiempo y paciencia (+100 días) 💕"
+        }
+        
+        resultado_final = categorias_adopcion.get(clase_predicha, "¡Categoría misteriosa! ✨")
+        
+        # ¡Animaciones mágicas!
+        st.balloons()
+        st.snow()
+        
+        st.markdown("### 💌 La Respuesta de las Estrellas:")
+        st.success(f"**{resultado_final}**")
+        
+    except Exception as e:
+        st.error(f"⚠️ Error al procesar la 
