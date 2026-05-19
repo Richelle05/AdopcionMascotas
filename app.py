@@ -181,4 +181,4 @@ if boton_predecir:
         st.success(f"**{resultado_final}**")
         
     except Exception as e:
-        st.error(f"⚠️ Error al procesar la 
+        st.error(f"⚠️ Error al procesar la predicción: {e}")
