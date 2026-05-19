@@ -122,44 +122,48 @@ with st.form("formulario_lindo"):
 
 
 
+
 if boton_predecir:
     # 1. Obtener el código de la raza elegida
     breed1_val = diccionario_razas[raza_seleccionada]
     
-    # 2. Definir los valores fijos para las variables ocultas
-    breed2_val = 0         
-    color1_val = 1         
-    maturity_size_val = 2  
-    fur_length_val = 1     
-    quantity_val = 1       
-    fee_val = 0            
-    video_amt_val = 0      
-    photo_amt_val = 2      
+    # 2. Definir los valores fijos para las variables que ocultamos de la pantalla
+    breed2_val = 0         # Sin segunda raza
+    color1_val = 1         # Código de color por defecto
+    maturity_size_val = 2  # Tamaño estándar Mediano
+    fur_length_val = 1     # Largo de pelo Corto común
+    quantity_val = 1       # Una sola mascota
+    fee_val = 0            # Adopción gratuita
+    video_amt_val = 0      # Sin videos
+    photo_amt_val = 2      # Promedio de 2 fotos
     
-    # 3. Crear una lista pura con los 16 valores en el orden exacto del dataset
-    # Al usar .predict() directamente sobre una lista de Python (dentro de una matriz de numpy), 
-    # removemos por completo el uso de DataFrames y evitamos que scikit-learn valide letras.
+    # 3. CONSTRUIR LA LISTA CON LAS 13 VARIABLES EXACTAS QUE TU MODELO EN COLAB ESPERA
+    # Orden estricto del bloque original de entrenamiento en Colab:
     lista_valores = [
-        type_pet, age, breed1_val, breed2_val, gender, color1_val,
-        maturity_size_val, fur_length_val, vaccinated, dewormed,
-        sterilized, health, quantity_val, fee_val, video_amt_val, photo_amt_val
+        type_pet,           # 1
+        age,                # 2
+        breed1_val,         # 3
+        breed2_val,         # 4
+        gender,             # 5
+        color1_val,         # 6
+        maturity_size_val,  # 7
+        fur_length_val,     # 8
+        vaccinated,         # 9
+        dewormed,           # 10
+        sterilized,         # 11
+        health,             # 12
+        quantity_val        # 13
     ]
     
-    # Convertimos a una matriz de numpy de dos dimensiones (1 fila, 16 columnas)
+    # Convertimos a la matriz de dos dimensiones requerida (1 fila, 13 columnas)
     matriz_pura = np.array([lista_valores])
     
     try:
-        # Extraemos el estimador interno de la búsqueda bayesiana para saltarnos la regla estricta de nombres
-        # Si el objeto guardado es un BayesSearchCV, usamos .best_estimator_.predict()
+        # Extraemos el estimador interno de la búsqueda bayesiana de forma segura
         if hasattr(model, 'best_estimator_'):
             clase_predicha = model.best_estimator_.predict(matriz_pura)[0]
         else:
-            # Si guardaste el RandomForestClassifier directo, usamos la propiedad subyacente para evadir feature_names
-            if hasattr(model, 'estimators_'):
-                # Forzamos la predicción pura sobre el modelo base
-                clase_predicha = model.predict(matriz_pura)[0]
-            else:
-                clase_predicha = model.predict(matriz_pura)[0]
+            clase_predicha = model.predict(matriz_pura)[0]
         
         # Mapeo de respuestas tiernas
         categorias_adopcion = {
@@ -172,7 +176,7 @@ if boton_predecir:
         
         resultado_final = categorias_adopcion.get(clase_predicha, "¡Categoría misteriosa! ✨")
         
-        # ¡Animaciones!
+        # ¡Animaciones mágicas!
         st.balloons()
         st.snow()
         
@@ -181,4 +185,3 @@ if boton_predecir:
         
     except Exception as e:
         st.error(f"⚠️ Error al procesar la predicción: {e}")
-        st.info("Por favor, asegúrate de hacer un 'Reboot App' en el panel de Streamlit para aplicar los cambios.")
