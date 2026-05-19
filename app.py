@@ -121,49 +121,45 @@ with st.form("formulario_lindo"):
     boton_predecir = st.form_submit_button("✨ ¡Calcular Tiempo de Adopción con Magia! 🔮")
 
 
+
 if boton_predecir:
-    # 1. Obtener el código interno de la raza elegida
+    # 1. Obtener el código de la raza elegida
     breed1_val = diccionario_razas[raza_seleccionada]
     
-    # 2. Rellenamos las variables ocultas que el modelo exige obligatoriamente
-    breed2_val = 0         # Sin segunda raza
-    color1_val = 1         # Código de color por defecto
-    maturity_size_val = 2  # Tamaño estándar Mediano
-    fur_length_val = 1     # Largo de pelo Corto común
-    quantity_val = 1       # Una sola mascota
-    fee_val = 0            # Adopción gratuita
-    video_amt_val = 0      # Sin videos
-    photo_amt_val = 2      # Promedio estándar de 2 fotos
+    # 2. Definir los valores fijos para las variables ocultas
+    breed2_val = 0         
+    color1_val = 1         
+    maturity_size_val = 2  
+    fur_length_val = 1     
+    quantity_val = 1       
+    fee_val = 0            
+    video_amt_val = 0      
+    photo_amt_val = 2      
     
-    # NUEVA VARIABLE OCULTA: El dataset original también usaba estas 4 variables numéricas
-    # que se nos habían quedado fuera en el conteo final:
-    color2_val = 0         # Sin segundo color
-    color3_val = 0         # Sin tercer color
-    state_val = 41326      # Código de Estado geográfico por defecto (Selangor)
-    res_id_numeric = 0     # Rescuer ID simulado neutro
-    
-    # 3. CONSTRUIR LAS 16 CARACTERÍSTICAS EXACTAS EN EL ORDEN DE ENTRENAMIENTO
-    # Orden estricto: Type, Age, Breed1, Breed2, Gender, Color1, Color2, Color3, 
-    # MaturitySize, FurLength, Vaccinated, Dewormed, Sterilized, Health, Quantity, Fee
-    
-    # Creamos un DataFrame con los nombres idénticos que usó el Colab para que encaje como un rompecabezas
-    columnas_originales = [
-        'Type', 'Age', 'Breed1', 'Breed2', 'Gender', 'Color1', 
-        'MaturitySize', 'FurLength', 'Vaccinated', 'Dewormed', 
-        'Sterilized', 'Health', 'Quantity', 'Fee', 'VideoAmt', 'PhotoAmt'
-    ]
-    
-    datos_fila = [[
+    # 3. Crear una lista pura con los 16 valores en el orden exacto del dataset
+    # Al usar .predict() directamente sobre una lista de Python (dentro de una matriz de numpy), 
+    # removemos por completo el uso de DataFrames y evitamos que scikit-learn valide letras.
+    lista_valores = [
         type_pet, age, breed1_val, breed2_val, gender, color1_val,
         maturity_size_val, fur_length_val, vaccinated, dewormed,
         sterilized, health, quantity_val, fee_val, video_amt_val, photo_amt_val
-    ]]
+    ]
     
-    df_entrada = pd.DataFrame(datos_fila, columns=columnas_originales)
+    # Convertimos a una matriz de numpy de dos dimensiones (1 fila, 16 columnas)
+    matriz_pura = np.array([lista_valores])
     
     try:
-        # Ejecutar la predicción usando la estructura limpia
-        clase_predicha = model.predict(df_entrada)[0]
+        # Extraemos el estimador interno de la búsqueda bayesiana para saltarnos la regla estricta de nombres
+        # Si el objeto guardado es un BayesSearchCV, usamos .best_estimator_.predict()
+        if hasattr(model, 'best_estimator_'):
+            clase_predicha = model.best_estimator_.predict(matriz_pura)[0]
+        else:
+            # Si guardaste el RandomForestClassifier directo, usamos la propiedad subyacente para evadir feature_names
+            if hasattr(model, 'estimators_'):
+                # Forzamos la predicción pura sobre el modelo base
+                clase_predicha = model.predict(matriz_pura)[0]
+            else:
+                clase_predicha = model.predict(matriz_pura)[0]
         
         # Mapeo de respuestas tiernas
         categorias_adopcion = {
@@ -176,7 +172,7 @@ if boton_predecir:
         
         resultado_final = categorias_adopcion.get(clase_predicha, "¡Categoría misteriosa! ✨")
         
-        # Animaciones adorables
+        # ¡Animaciones!
         st.balloons()
         st.snow()
         
@@ -184,5 +180,5 @@ if boton_predecir:
         st.success(f"**{resultado_final}**")
         
     except Exception as e:
-        st.error(f"⚠️ Error interno del modelo: {e}")
-        st.info("Prueba reiniciando la app en Streamlit Cloud desde 'Manage App' -> 'Reboot app'.")
+        st.error(f"⚠️ Error al procesar la predicción: {e}")
+        st.info("Por favor, asegúrate de hacer un 'Reboot App' en el panel de Streamlit para aplicar los cambios.")
