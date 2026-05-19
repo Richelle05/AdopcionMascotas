@@ -172,13 +172,18 @@ if boton_predecir:
         }
         
         resultado_final = categorias_adopcion.get(clase_predicha, "¡Categoría misteriosa! ✨")
-        
-        # ¡Animaciones mágicas!
-        st.balloons()
-        st.snow()
-        
-        st.markdown("### 💌 La Respuesta de las Estrellas:")
-        st.success(f"**{resultado_final}**")
+
+    #ANIMACIONES
+    st.balloons()
+    st.markdown("### 💌 La Respuesta de las Estrellas:")
+    
+    # Mostrar imágenes adorables según el tipo de animal
+    if type_pet == 1: # Perrito
+        st.image("https://media.giphy.com/media/VbyXgohWJCIRy/giphy.gif", caption="¡Perrito feliz esperando su hogar!", use_column_width=True) 
+    else: # Gatito
+        st.image("https://media.giphy.com/media/11s4Xp6Y9eG5fQ/giphy.gif", caption="¡Gatito adorable esperando su hogar!", use_column_width=True)
+
+    st.success(f"**{resultado_final}**")
         
     except Exception as e:
         st.error(f"⚠️ Error al procesar la predicción: {e}")
